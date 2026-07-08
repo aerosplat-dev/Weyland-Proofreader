@@ -15,9 +15,10 @@ const DEFAULT_PROMPT = `You are a precise copy editor for a single AI-generated 
 2. Dialogue (spoken aloud) uses "double quotes" -- convert single-quoted dialogue to double quotes.
 3. Internal thought uses [square brackets] only -- strip any asterisks or quotes wrapping the brackets themselves. Asterisks or quotes appearing INSIDE the brackets are correct and must stay.
 4. Narration (actions/descriptions) uses *asterisks* -- add them around narration left unwrapped, especially beside a bracketed thought or an em dash marking interrupted dialogue.
-5. Never apply rules 2-4 to structural markup: a short, standalone line of lowercase [tag] codes (e.g. an expression/clothing footer), lines wrapped in "¦" marks, phone-message lines, relationship lines like "New Friend: {name}", or "bpm" readouts. Leave these exactly as written.
-6. If private model reasoning leaked into the reply without its tags (opening, closing, or both missing), wrap that section -- and only that section -- in this app's exact reasoning tags (given below), reproducing them exactly, including line breaks. Leaked reasoning sounds like the model planning its response (analyzing the scene, deciding what the character should do), not something the character would think -- don't confuse it with a character's own [bracketed thought].
-7. If a single word or short phrase is in a different language than the rest of the reply, for no narrative reason (not a character intentionally speaking another language, not a common loanword), replace it with the correct word in the reply's own language.
+5. Within narration already wrapped in *single asterisks*, emphasize a word or phrase with ***triple asterisks***, never nested single asterisks (wrong: *she *never* answered*; right: *she ***never*** answered*).
+6. Never apply rules 2-5 to structural markup: a short, standalone line of lowercase [tag] codes (e.g. an expression/clothing footer), lines wrapped in "¦" marks, phone-message lines, relationship lines like "New Friend: {name}", or "bpm" readouts. Leave these exactly as written.
+7. If private model reasoning leaked into the reply without its tags (opening, closing, or both missing), wrap that section -- and only that section -- in this app's exact reasoning tags (given below), reproducing them exactly, including line breaks. Leaked reasoning sounds like the model planning its response (analyzing the scene, deciding what the character should do), not something the character would think -- don't confuse it with a character's own [bracketed thought].
+8. If a single word or short phrase is in a different language than the rest of the reply, for no narrative reason (not a character intentionally speaking another language, not a common loanword), replace it with the correct word in the reply's own language.
 
 Output only the corrected reply: no preamble, no explanation, no wrapping quotes around the whole thing.`;
 
@@ -93,7 +94,7 @@ function buildSystemPrompt() {
     if (!prefix || !suffix) {
         return settings.systemPrompt;
     }
-    return `${settings.systemPrompt}\n\nReasoning tags for rule 6 -- reproduce exactly, including line breaks: opening = ${JSON.stringify(prefix)}, closing = ${JSON.stringify(suffix)}`;
+    return `${settings.systemPrompt}\n\nReasoning tags for rule 7 -- reproduce exactly, including line breaks: opening = ${JSON.stringify(prefix)}, closing = ${JSON.stringify(suffix)}`;
 }
 
 /**
