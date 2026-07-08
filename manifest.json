@@ -1,0 +1,11 @@
+{
+    "display_name": "Weyland-Proofreader",
+    "loading_order": 402,
+    "requires": [],
+    "optional": [],
+    "dependencies": ["connection-manager"],
+    "js": "index.js",
+    "author": "weyland-tavern",
+    "version": "1.0.0",
+    "homePage": "https://github.com/SillyTavern/SillyTavern"
+}

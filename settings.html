@@ -1,0 +1,63 @@
+<div class="weyland_proofreader_container">
+    <div class="weyland_proofreader_settings">
+        <div class="inline-drawer">
+            <div class="inline-drawer-toggle inline-drawer-header">
+                <b data-i18n="Weyland-Proofreader">Weyland Proofreader</b>
+                <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+            </div>
+
+            <div class="inline-drawer-content">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                    <label class="checkbox_label" for="weylandProofreaderEnable" title="Enable Weyland Proofreader" data-i18n="[title]Enable Weyland Proofreader">
+                        <input id="weylandProofreaderEnable" type="checkbox">
+                        <span data-i18n="Enabled">Enabled</span>
+                    </label>
+                    <label class="checkbox_label" for="weylandProofreaderSwipes" title="Also correct alternate swipes when they are viewed" data-i18n="[title]Also correct alternate swipes when they are viewed">
+                        <input id="weylandProofreaderSwipes" type="checkbox">
+                        <span data-i18n="Correct Swipes">Correct Swipes</span>
+                    </label>
+                    <label class="checkbox_label" for="weylandProofreaderDebug" title="Debug Weyland Proofreader" data-i18n="[title]Debug Weyland Proofreader">
+                        <input id="weylandProofreaderDebug" type="checkbox">
+                        <span data-i18n="Debug">Debug</span>
+                    </label>
+                </div>
+
+                <div class="flex-container alignItemsBaseline" style="margin-top: 10px;">
+                    <h4 class="margin0" data-i18n="Correction Connection">Correction Connection</h4>
+                    <a href="https://docs.sillytavern.app/usage/core-concepts/connection-profiles" target="_blank" class="notes-link">
+                        <span class="fa-solid fa-circle-question note-link-span"></span>
+                    </a>
+                </div>
+                <small data-i18n="weylandProofreaderProfileHint">Pick a Connection Profile pointing at the backend/credentials you already use for roleplay. Manage profiles in the Connection Manager panel above.</small>
+                <select id="weylandProofreaderProfile" class="text_pole"></select>
+
+                <label for="weylandProofreaderModelId" data-i18n="Model ID" style="margin-top: 5px;">Model ID</label>
+                <input id="weylandProofreaderModelId" class="text_pole" type="text" placeholder="Leave blank to use the profile's own model" />
+                <small data-i18n="weylandProofreaderModelIdHint">Overrides just the model for correction calls -- a small, fast model on the same backend. Leave blank to use whatever model the profile above has configured.</small>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px;">
+                    <div class="flex-container flexFlowColumn flexNoGap">
+                        <label for="weylandProofreaderMaxTokens" data-i18n="Max Correction Tokens">Max Correction Tokens</label>
+                        <input id="weylandProofreaderMaxTokens" class="text_pole" type="number" min="64" max="4096" step="1" />
+                    </div>
+                    <div class="flex-container flexFlowColumn flexNoGap">
+                        <label for="weylandProofreaderTimeout" data-i18n="Timeout (seconds)">Timeout (seconds)</label>
+                        <input id="weylandProofreaderTimeout" class="text_pole" type="number" min="5" max="120" step="1" />
+                    </div>
+                </div>
+
+                <label for="weylandProofreaderPrompt" data-i18n="Correction Instructions" style="margin-top: 5px;">Correction Instructions</label>
+                <textarea id="weylandProofreaderPrompt" class="text_pole textarea_compact" rows="7" placeholder="Instructions sent to the correction model"></textarea>
+
+                <div style="display: flex; gap: 5px; width: 100%; margin-top: 5px;">
+                    <label class="button_label" for="weylandProofreaderTestButton" title="Run correction on the last AI message now" data-i18n="[title]Run correction on the last AI message now" style="flex: 1; margin: 0;">
+                        <input id="weylandProofreaderTestButton" type="button" class="menu_button" value="Correct Last Message" style="width: 100%;" />
+                    </label>
+                    <label class="button_label" for="weylandProofreaderResetPromptButton" title="Reset Correction Instructions to default" data-i18n="[title]Reset Correction Instructions to default" style="flex: 1; margin: 0;">
+                        <input id="weylandProofreaderResetPromptButton" type="button" class="menu_button" value="Reset Instructions" style="width: 100%;" />
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
