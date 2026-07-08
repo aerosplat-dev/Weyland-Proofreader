@@ -9,20 +9,17 @@ const { extensionSettings, renderExtensionTemplateAsync, chat } = SillyTavern.ge
 const MODULE_NAME = 'Weyland-Proofreader';
 const extensionVersion = '1.0.0';
 
-const DEFAULT_PROMPT = `You are a meticulous copy editor for roleplay fiction. You will be given a single AI-generated roleplay reply.
+const DEFAULT_PROMPT = `You are a precise copy editor for a single AI-generated roleplay reply. Fix only the numbered issues below -- do not otherwise rewrite, expand, shorten, summarize, or change the meaning, tone, or style.
 
-Fix only clear spelling mistakes, typos, and stray punctuation/capitalization errors. Do not rewrite, rephrase, summarize, expand, or otherwise change the meaning, tone, style, or length of the text.
+1. Fix clear spelling mistakes, typos, and stray punctuation/capitalization errors.
+2. Dialogue (spoken aloud) uses "double quotes" -- convert single-quoted dialogue to double quotes.
+3. Internal thought uses [square brackets] only -- strip any asterisks or quotes wrapping the brackets themselves. Asterisks or quotes appearing INSIDE the brackets are correct and must stay.
+4. Narration (actions/descriptions) uses *asterisks* -- add them around narration left unwrapped, especially beside a bracketed thought or an em dash marking interrupted dialogue.
+5. Never apply rules 2-4 to structural markup: a short, standalone line of lowercase [tag] codes (e.g. an expression/clothing footer), lines wrapped in "¦" marks, phone-message lines, relationship lines like "New Friend: {name}", or "bpm" readouts. Leave these exactly as written.
+6. If private model reasoning leaked into the reply without its tags (opening, closing, or both missing), wrap that section -- and only that section -- in this app's exact reasoning tags (given below), reproducing them exactly, including line breaks. Leaked reasoning sounds like the model planning its response (analyzing the scene, deciding what the character should do), not something the character would think -- don't confuse it with a character's own [bracketed thought].
+7. If a single word or short phrase is in a different language than the rest of the reply, for no narrative reason (not a character intentionally speaking another language, not a common loanword), replace it with the correct word in the reply's own language.
 
-Infer from context which text is spoken dialogue, internal thought, or narration, and enforce:
-1. Dialogue (spoken aloud) is wrapped in double quotation marks ("like this"). Convert single-quoted dialogue to double quotes.
-2. An internal thought is wrapped in square brackets ([like this]) only -- strip any asterisks or quotation marks that wrap the brackets themselves. Asterisks or quotes appearing INSIDE the brackets are fine and must be left untouched.
-3. Narration (actions/descriptions) is wrapped in asterisks (*like this*). Add missing asterisks around narration left unwrapped, especially where it sits beside a bracketed thought or an em dash marking interrupted dialogue.
-
-A short, standalone line of lowercase [tag] codes (e.g. an expression/clothing footer) is structural, not a thought -- leave those lines untouched, as well as any other structural markup such as lines wrapped in "¦" marks, phone-message lines, relationship lines like "New Friend: {name}", or "bpm" readouts.
-
-Sometimes the model's own private reasoning/scratchpad leaks into the reply because it forgot to wrap it in this app's reasoning tags (missing the opening tag, the closing tag, or both). This is different from a character's own in-fiction thought in [square brackets] -- leaked reasoning reads like the model thinking out loud about how to respond (planning, analyzing the scene, deciding what the character should do), not something the character would think or say. If you find such a section, wrap the ENTIRE leaked section, and only that section, with this app's exact reasoning tags (given to you separately below), reproducing them exactly, including any line breaks.
-
-Reply with only the corrected text and nothing else: no preamble, no explanation, no wrapping quotation marks around your whole reply.`;
+Output only the corrected reply: no preamble, no explanation, no wrapping quotes around the whole thing.`;
 
 /**
  * @typedef {Object} WeylandProofreaderSettings
@@ -96,7 +93,7 @@ function buildSystemPrompt() {
     if (!prefix || !suffix) {
         return settings.systemPrompt;
     }
-    return `${settings.systemPrompt}\n\nThis app's exact reasoning tags -- reproduce them exactly, including any line breaks: opening = ${JSON.stringify(prefix)}, closing = ${JSON.stringify(suffix)}`;
+    return `${settings.systemPrompt}\n\nReasoning tags for rule 6 -- reproduce exactly, including line breaks: opening = ${JSON.stringify(prefix)}, closing = ${JSON.stringify(suffix)}`;
 }
 
 /**
