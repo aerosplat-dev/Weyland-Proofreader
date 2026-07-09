@@ -1,22 +1,27 @@
-import { eventSource, event_types, saveSettingsDebounced, updateMessageBlock, saveChatConditional, syncMesToSwipe } from '../../../script.js';
-import { power_user } from '../../power-user.js';
-import { parseReasoningFromString } from '../../reasoning.js';
-import { getTokenCountAsync } from '../../tokenizers.js';
-import { ConnectionManagerRequestService } from '../shared.js';
+import { eventSource, event_types, saveSettingsDebounced, updateMessageBlock, saveChatConditional, syncMesToSwipe } from '../../../../script.js';
+import { power_user } from '../../../power-user.js';
+import { parseReasoningFromString } from '../../../reasoning.js';
+import { getTokenCountAsync } from '../../../tokenizers.js';
+import { ConnectionManagerRequestService } from '../../shared.js';
 
 const { extensionSettings, renderExtensionTemplateAsync, chat } = SillyTavern.getContext();
 
 const MODULE_NAME = 'Weyland-Proofreader';
+// Settings are keyed on MODULE_NAME (unchanged) so this move doesn't reset existing
+// configs, but the template URL must include the third-party/ segment SillyTavern
+// serves this folder under, since renderExtensionTemplateAsync builds the path
+// verbatim from whatever name it's given.
+const TEMPLATE_NAME = 'third-party/Weyland-Proofreader';
 const extensionVersion = '1.0.0';
 
 const DEFAULT_PROMPT = `You are a precise copy editor for a single AI-generated roleplay reply. Fix only the numbered issues below -- do not otherwise rewrite, expand, shorten, summarize, or change the meaning, tone, or style.
 
 1. Fix clear spelling mistakes, typos, and stray punctuation/capitalization errors.
-2. Dialogue (spoken aloud) uses "double quotes" -- convert single-quoted dialogue to double quotes.
-3. Internal thought uses [square brackets] only -- strip any asterisks or quotes wrapping the brackets themselves. Asterisks or quotes appearing INSIDE the brackets are correct and must stay.
-4. Narration (actions/descriptions) uses *asterisks* -- add them around narration left unwrapped, especially beside a bracketed thought or an em dash marking interrupted dialogue.
-5. Within narration already wrapped in *single asterisks*, emphasize a word or phrase with ***triple asterisks***, never nested single asterisks (wrong: *she *never* answered*; right: *she ***never*** answered*).
-6. Never apply rules 2-5 to structural markup: a short, standalone line of lowercase [tag] codes (e.g. an expression/clothing footer), lines wrapped in "¦" marks, phone-message lines, relationship lines like "New Friend: {name}", or "bpm" readouts. Leave these exactly as written.
+2. The reply has three block types, each with its own wrapper: "dialogue" (spoken aloud, double quotes), [thoughts] (square brackets), and *narration* (actions/descriptions, asterisks). Infer which type each part of the text is and enforce the correct wrapper: convert single-quoted dialogue to double quotes (per rule 3, anything quoted inside that dialogue stays single), strip any asterisks/quotes wrapping the brackets of a thought, and add asterisks around narration left unwrapped -- especially beside a bracketed thought or an em dash marking interrupted dialogue.
+3. Double quotes only ever open and close a dialogue block; they never appear anywhere else. Inside narration or a thought, any quotation -- including a reported or remembered quote of someone's words -- uses 'single quotes' instead and stays embedded in the block rather than being split out (e.g. *He remembered her calling it 'a mistake' back then.*, not double quotes, and not split into its own dialogue block). A quotation nested inside dialogue itself also stays single, since the surrounding double quotes already own that role (thoughts never use double quotes either way). Don't mistake a contraction or possessive apostrophe (don't, Mia's) for a quote mark -- leave those untouched.
+4. Nested emphasis uses *italics* and **bold** as usual. Exception: inside narration, nested italics collide with narration's own single asterisks, so use ***triple asterisks*** instead of a second single pair (wrong: *she *never* answered*; right: *she ***never*** answered*) -- nested bold is unaffected and keeps its normal **double-asterisk** form. If the tripled word sits flush against narration's own wrapper asterisk with no space between them, insert one space to keep the asterisk count unambiguous -- never emit a run of more than three in a row. This choice depends only on the block directly wrapping the emphasized text, not on narration or dialogue merely sitting nearby (e.g. on the far side of a bracketed thought per rule 5).
+5. A thought never sits inside a dialogue or narration block, and narration inserted mid-dialogue (e.g. after an em dash marking interrupted speech) never stays inside the open quotes either. Close the block right before the interruption and reopen it right after, omitting the wrapper entirely on any side with no text (e.g. [I shouldn't have said that] *she looked away.*); e.g. *She turned to leave* [wait, should I stay?] *but stopped short.* or "I said—" *he trailed off* "—we should go."
+6. Never apply rules 1-5 to structural markup, and copy it through unchanged, character for character: a line made up only of lowercase descriptor tags (comma-separated if more than one, e.g. [flushed, aroused, breathless], or a single tag like [breathless]) with no other text sharing that line -- unlike a real thought, which is never exempt even if short and alone on its own line. Also exempt: lines wrapped in "¦" marks, phone-message lines, relationship lines like "New Friend: {name}", or "bpm" readouts.
 7. If private model reasoning leaked into the reply without its tags (opening, closing, or both missing), wrap that section -- and only that section -- in this app's exact reasoning tags (given below), reproducing them exactly, including line breaks. Leaked reasoning sounds like the model planning its response (analyzing the scene, deciding what the character should do), not something the character would think -- don't confuse it with a character's own [bracketed thought].
 8. If a single word or short phrase is in a different language than the rest of the reply, for no narrative reason (not a character intentionally speaking another language, not a common loanword), replace it with the correct word in the reply's own language.
 
@@ -39,7 +44,7 @@ const defaultSettings = {
     enabled: false,
     profileId: '',
     modelId: '',
-    maxTokens: 2048,
+    maxTokens: 3000,
     timeoutSeconds: 20,
     systemPrompt: DEFAULT_PROMPT,
     correctSwipes: true,
@@ -99,7 +104,7 @@ function buildSystemPrompt() {
 
 /**
  * Builds the correction request payload for the given connection profile.
- * @param {import('../connection-manager/index.js').ConnectionProfile} profile
+ * @param {import('../../../../public/scripts/extensions/connection-manager/index.js').ConnectionProfile} profile
  * @param {string} text
  * @returns {string | Array<{role: string, content: string}>}
  */
@@ -252,7 +257,7 @@ function findLastAiMessageIndex() {
 
 (async function () {
     async function addExtensionSettings() {
-        const template = await renderExtensionTemplateAsync(MODULE_NAME, 'settings');
+        const template = await renderExtensionTemplateAsync(TEMPLATE_NAME, 'settings');
         $('#extensions_settings2').append(template);
 
         $('#weylandProofreaderEnable').prop('checked', settings.enabled).on('input', function () {
